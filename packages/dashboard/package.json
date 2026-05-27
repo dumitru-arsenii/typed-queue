@@ -1,0 +1,39 @@
+{
+  "name": "@typed-queue/dashboard",
+  "version": "0.0.1",
+  "private": false,
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dumitru-arsenii/typed-queue.git",
+    "directory": "packages/dashboard"
+  },
+  "homepage": "https://github.com/dumitru-arsenii/typed-queue/tree/main/packages/dashboard#readme",
+  "bugs": {
+    "url": "https://github.com/dumitru-arsenii/typed-queue/issues"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap --clean --external @typed-queue/core",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@typed-queue/core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

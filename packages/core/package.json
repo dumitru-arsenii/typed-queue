@@ -1,0 +1,41 @@
+{
+  "name": "@typed-queue/core",
+  "version": "0.0.1",
+  "private": false,
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dumitru-arsenii/typed-queue.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/dumitru-arsenii/typed-queue/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/dumitru-arsenii/typed-queue/issues"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap --clean",
+    "lint": "eslint .",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "redis": "^5.10.0",
+    "zod": "^3.25.76"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
