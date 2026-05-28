@@ -76,13 +76,7 @@ const queue = createTypedQueue({
   jobs: [sendEmailJob]
 });
 
-const { id } = await queue.enqueue("email.send", {
-  to: "user@example.com",
-  subject: "Hello",
-  body: "Message"
-});
-
-await sendEmailJob.enqueue({
+const { id } = await sendEmailJob.enqueue({
   to: "user@example.com",
   subject: "Hello",
   body: "Message"
@@ -141,8 +135,7 @@ The current worker is in-process and uses the configured Redis-backed
 ## Delayed Jobs
 
 ```ts
-const delayed = await queue.enqueue(
-  "email.send",
+const delayed = await sendEmailJob.enqueue(
   {
     to: "user@example.com",
     subject: "Hello",

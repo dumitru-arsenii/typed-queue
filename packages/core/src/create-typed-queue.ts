@@ -9,10 +9,7 @@ import type {
   AnyTypedQueueJob,
   CreateTypedQueueOptions,
   EnqueueOptions,
-  InferJobInput,
-  JobByName,
   JobDispatchReceipt,
-  JobName,
   JobRecord,
   TypedQueue,
   WorkerOptions
@@ -30,64 +27,64 @@ export function createTypedQueue<
   const queueRef: { current?: TypedQueue<TJobs> } = {};
   const registry = new JobRegistry<TJobs>([], (job) => {
     if (queueRef.current) {
-      bindJobToQueue(job, queueRef.current);
+      bindJobToQueue(job, queueRef.current, enqueueJob);
     }
   });
   const storage = createRedisQueueStorage(options.redis);
   const idGenerator = options.idGenerator ?? defaultIdGenerator;
+
+  async function enqueueJob(
+    name: string,
+    input: unknown,
+    enqueueOptions?: EnqueueOptions,
+  ): Promise<JobDispatchReceipt> {
+    const definition = registry.get(name);
+
+    if (!definition) {
+      throw new JobNotFoundError(name);
+    }
+
+    const parsed = definition.input.safeParse(input);
+
+    if (!parsed.success) {
+      throw new JobInputValidationError(definition.name, parsed.error);
+    }
+
+    const now = clock();
+    const normalized = normalizeEnqueueOptions({
+      options: enqueueOptions,
+      jobOptions: definition.options,
+      now
+    });
+    const id = normalized.id ?? idGenerator(definition.name);
+    const record: JobRecord<unknown> = {
+      id,
+      name: definition.name,
+      payload: parsed.data,
+      state: normalized.state,
+      attempts: 0,
+      maxAttempts: normalized.attempts,
+      priority: normalized.priority,
+      createdAt: now,
+      updatedAt: now,
+      readyAt: normalized.readyAt,
+      delayMs: normalized.delayMs,
+      backoff: normalized.backoff,
+      metadata: normalized.metadata,
+      correlationId: normalized.correlationId,
+      traceId: normalized.traceId,
+      errors: []
+    };
+
+    await storage.add(record);
+    return { id };
+  }
 
   const queue: TypedQueue<TJobs> = {
     registry,
     storage,
     clock,
     jobs: createJobsIntrospection(storage, clock),
-
-    async enqueue<TName extends JobName<TJobs>>(
-      name: TName,
-      input: InferJobInput<JobByName<TJobs, TName>>,
-      enqueueOptions?: EnqueueOptions,
-    ): Promise<JobDispatchReceipt> {
-      const definition = registry.get(name);
-
-      if (!definition) {
-        throw new JobNotFoundError(name);
-      }
-
-      const parsed = definition.input.safeParse(input);
-
-      if (!parsed.success) {
-        throw new JobInputValidationError(definition.name, parsed.error);
-      }
-
-      const now = clock();
-      const normalized = normalizeEnqueueOptions({
-        options: enqueueOptions,
-        jobOptions: definition.options,
-        now
-      });
-      const id = normalized.id ?? idGenerator(definition.name);
-      const record: JobRecord<InferJobInput<JobByName<TJobs, TName>>> = {
-        id,
-        name: definition.name,
-        payload: parsed.data,
-        state: normalized.state,
-        attempts: 0,
-        maxAttempts: normalized.attempts,
-        priority: normalized.priority,
-        createdAt: now,
-        updatedAt: now,
-        readyAt: normalized.readyAt,
-        delayMs: normalized.delayMs,
-        backoff: normalized.backoff,
-        metadata: normalized.metadata,
-        correlationId: normalized.correlationId,
-        traceId: normalized.traceId,
-        errors: []
-      };
-
-      await storage.add(record);
-      return { id };
-    },
 
     createWorker<TContext = unknown>(workerOptions?: WorkerOptions<TContext>) {
       return createTypedQueueWorker(queue, workerOptions);

@@ -63,13 +63,7 @@ const typedQueue = createTypedQueue({
   jobs: [sendEmailJob]
 });
 
-const { id } = await typedQueue.enqueue("email.send", {
-  to: "user@example.com",
-  subject: "Hello",
-  body: "Message"
-});
-
-await sendEmailJob.enqueue({
+const { id } = await sendEmailJob.enqueue({
   to: "user@example.com",
   subject: "Hello",
   body: "Message"
@@ -83,8 +77,7 @@ const envelope = await typedQueue.jobs.get(id);
 ## Delayed Jobs
 
 ```ts
-const delayed = await typedQueue.enqueue(
-  "email.send",
+const delayed = await sendEmailJob.enqueue(
   {
     to: "user@example.com",
     subject: "Hello",

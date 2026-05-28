@@ -8,6 +8,7 @@ import type {
   EnqueueOptions,
   JobEnvelope,
   JobErrorDetails,
+  JobState,
   JobsIntrospection,
   ListJobsOptions,
   QueueStorage
@@ -20,7 +21,11 @@ const registeredStates = [
   "active",
   "completed",
   "failed"
-] as const;
+] as const satisfies readonly JobState[];
+
+function isRegisteredState(state: JobState): boolean {
+  return registeredStates.some((registeredState) => registeredState === state);
+}
 
 export function createJobsIntrospection(
   storage: QueueStorage,
@@ -36,7 +41,7 @@ export function createJobsIntrospection(
         ? [options.state]
         : options?.states;
       const states = requestedStates
-        ? requestedStates.filter((state) => registeredStates.includes(state as never))
+        ? requestedStates.filter(isRegisteredState)
         : registeredStates;
 
       return storage.list({

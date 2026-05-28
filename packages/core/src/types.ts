@@ -253,7 +253,13 @@ export type TypedQueueJobDefinition<
     OutputFromSchema<TOutputSchema>
   >;
 
-export type AnyTypedQueueJob = TypedQueueJobDefinition<string, any, any, any, any>;
+export type AnyTypedQueueJob = TypedQueueJobDefinition<
+  string,
+  z.ZodTypeAny,
+  AnyOutputSchema,
+  unknown,
+  JobMetadata
+>;
 
 export interface ListJobsOptions<TPayload = unknown> {
   readonly queue?: string;
@@ -381,11 +387,6 @@ export interface TypedQueue<
   readonly registry: JobRegistryApi<TJobs>;
   readonly storage: QueueStorage;
   readonly clock: Clock;
-  enqueue<TName extends JobName<TJobs>>(
-    name: TName,
-    input: InferJobInput<JobByName<TJobs, TName>>,
-    options?: EnqueueOptions,
-  ): Promise<JobDispatchReceipt>;
   createWorker<TContext = unknown>(
     options?: WorkerOptions<TContext>,
   ): TypedQueueWorker;

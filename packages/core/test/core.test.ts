@@ -114,7 +114,7 @@ describe("@typed-queue/core", () => {
       idGenerator: () => "job-1"
     });
 
-    const receipt = await queue.enqueue("email.send", {
+    const receipt = await emailJob.enqueue({
       to: "user@example.com",
       subject: "Hello",
       body: "Message"
@@ -211,7 +211,7 @@ describe("@typed-queue/core", () => {
     });
 
     await expect(
-      queue.enqueue("email.send", {
+      emailJob.enqueue({
         to: "not-an-email",
         subject: "Hello",
         body: "Message"
@@ -281,7 +281,7 @@ describe("@typed-queue/core", () => {
       idGenerator: () => "failed-job"
     });
 
-    await queue.enqueue("report.fail", { id: "r1" });
+    await failingJob.enqueue({ id: "r1" });
     const [result] = await queue.createWorker().processOnce();
     const stored = await queue.jobs.get("failed-job");
 
@@ -322,7 +322,7 @@ describe("@typed-queue/core", () => {
       idGenerator: () => "dlq-job"
     });
 
-    await queue.enqueue("report.dlq", { id: "r1" }, {
+    await dlqJob.enqueue({ id: "r1" }, {
       correlationId: "correlation-1",
       traceId: "trace-1"
     });
@@ -380,7 +380,7 @@ describe("@typed-queue/core", () => {
       idGenerator: () => "archive-job"
     });
 
-    await queue.enqueue("email.send", {
+    await emailJob.enqueue({
       to: "user@example.com",
       subject: "Hello",
       body: "Message"

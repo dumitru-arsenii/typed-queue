@@ -161,11 +161,14 @@ async function routeApi(
       return;
     }
 
-    const receipt = await queue.enqueue(
-      queueName,
-      body.payload as never,
-      toEnqueueOptions(body.options),
-    );
+    const job = queue.registry.get(queueName);
+
+    if (!job) {
+      sendJson(response, 404, { error: "unknown_queue" });
+      return;
+    }
+
+    const receipt = await job.enqueue(body.payload, toEnqueueOptions(body.options));
 
     sendJson(response, 201, receipt);
     return;
