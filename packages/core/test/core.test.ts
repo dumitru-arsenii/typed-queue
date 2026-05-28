@@ -204,7 +204,7 @@ describe("@typed-queue/core", () => {
   });
 
   it("rejects invalid input while enqueueing", async () => {
-    const queue = createTypedQueue({
+    const _queue = createTypedQueue({
       jobs: [emailJob],
       redis: createTestRedisOptions(),
       idGenerator: () => "job-1"
